@@ -126,17 +126,20 @@ t : array-like, shape = [num_samples]
 y : array-like, shape = [num_samples]
 '''
 class Node:
-    def __init__(self, data,ID=None):
+    def __init__(self, data,treatmentName,outcomeName,ID=None):
 #         print("Initializing a node")
         self.id=ID
         self.data=data.copy() #ordered data
+        self.treatment=treatmentName
+        self.output=outcomeName
 #         print("self.data is ",self.data.head())
         self.N=data.shape[0]
-        self.Nj = data[data['Y']==1].shape[0] 
-        self.Ntj=[data[(data['T']==0)&(data['Y']==0)].shape[0],
-                 data[(data['T']==0)&(data['Y']==1)].shape[0],
-                 data[(data['T']==1)&(data['Y']==0)].shape[0],
-                 data[(data['T']==1)&(data['Y']==1)].shape[0]]
+
+        self.Nj = data[data[self.output]==1].shape[0] 
+        self.Ntj=[data[(data[self.treatment]==0)&(data[self.output]==0)].shape[0],
+                 data[(data[self.treatment]==0)&(data[self.output]==1)].shape[0],
+                 data[(data[self.treatment]==1)&(data[self.output]==0)].shape[0],
+                 data[(data[self.treatment]==1)&(data[self.output]==1)].shape[0]]
         
         self.X=data.iloc[:,:-2].copy()
 #         print("self.X in node ",self.X)
@@ -224,7 +227,7 @@ class Node:
         for attribute in features:
             if len(self.X[attribute].value_counts())==1 or len(self.X[attribute].value_counts())==0:
                 continue
-            DiscRes=UMODL_Discretizer(self.X,self.T.tolist(),self.Y.tolist(),attribute)
+            DiscRes=UMODL_Discretizer(self.X,self.T,self.Y,attribute)
             if DiscRes==-1:
 #                 print("NULL MODEL FOUND was returned")
                 continue
@@ -251,7 +254,7 @@ class Node:
     def updateTreeCriterion(self,LeftAndRightData,simulate=True):
         LeavesVals=0
         for NewNodeEffectifs in LeftAndRightData:#Loop on Left and Right candidate nodes
-            L=Node(NewNodeEffectifs)
+            L=Node(NewNodeEffectifs,self.treatment,self.output)
             LeavesVals+=(L.PriorLeaf+L.LikelihoodLeaf)
             del L
         return LeavesVals
@@ -261,8 +264,8 @@ class Node:
             raise
         else:
             self.isLeaf=False
-            self.leftNode = Node(self.CandidateSplitsVsDataLeftDataRight[Attribute][0],ID=self.id*2)
-            self.rightNode = Node(self.CandidateSplitsVsDataLeftDataRight[Attribute][1],ID=self.id*2+1)
+            self.leftNode = Node(self.CandidateSplitsVsDataLeftDataRight[Attribute][0],self.treatment,self.output,ID=self.id*2)
+            self.rightNode = Node(self.CandidateSplitsVsDataLeftDataRight[Attribute][1],self.treatment,self.output,ID=self.id*2+1)
             self.Attribute = Attribute
             self.SplitThreshold=self.CandidateSplitsVsDataLeftDataRight[Attribute][2]
             return self.leftNode,self.rightNode
@@ -273,10 +276,10 @@ class Node:
 # Uplift Tree Classifier
 class UpliftTreeClassifier:
     
-    def __init__(self, data):#ordered data as argument
+    def __init__(self, data,treatmentName,outcomeName):#ordered data as argument
 
         self.nodesIds=0
-        self.rootNode=Node(data,ID=self.nodesIds+1) 
+        self.rootNode=Node(data,treatmentName,outcomeName,ID=self.nodesIds+1) 
         self.terminalNodes=[self.rootNode]
         self.internalNodes=[]
         
@@ -441,21 +444,21 @@ class UpliftTreeClassifier:
         return np.array(predictions)
 
 class UMODL_RandomForest:
-    def __init__(self, data,numberOfTrees=10,parallelized=False,NotAllVars=False):
+    def __init__(self, data,treatmentName,outcomeName,numberOfTrees=10,parallelized=False,NotAllVars=False):
         self.ListOfTrees=[]
         self.data=data
         #Randomly select columns for the data
         if NotAllVars==True:
             cols=list(self.data.columns)
-            cols.remove('T')
-            cols.remove('Y')
+            cols.remove(treatmentName)
+            cols.remove(outcomeName)
             print("cols before are ",cols)
             cols=random.sample(cols,int(np.sqrt(len(cols))))
             print("cols after are ",cols)
-            self.data=self.data[cols+['T','Y']]
+            self.data=self.data[cols+[treatmentName,outcomeName]]
         self.parallelized=parallelized
         for i in range(numberOfTrees):
-            Tree=UpliftTreeClassifier(self.data.copy())
+            Tree=UpliftTreeClassifier(self.data.copy(),treatmentName,outcomeName)
             self.ListOfTrees.append(Tree)
     def fit_parallelized(self,TreeModel):
         TreeModel.growTree()

@@ -83,8 +83,8 @@ def stop_counter(i):
     
 
 #============================================================================================
-def calcNullModel(dff,att='X'):
-    data=dff[[att,'T','Y']].values.tolist()
+def calcNullModel(dff,att,treatmentColName,outputColName):
+    data=dff[[att,treatmentColName,outputColName]].values.tolist()
     
     data=SortedKeyList(data, key=itemgetter(0))
     dataNITJ=[0,0,0,0] #The frequency of treatment class
@@ -94,8 +94,8 @@ def calcNullModel(dff,att='X'):
     N_instances=dff.shape[0]
     
     
-    NumberOfIndividualsWithClass1=dff[dff['Y']==1].shape[0]
-    NumberOfIndividualsWithClass0=dff[dff['Y']==0].shape[0]
+    NumberOfIndividualsWithClass1=dff[dff[outputColName]==1].shape[0]
+    NumberOfIndividualsWithClass0=dff[dff[outputColName]==0].shape[0]
     
     LastTermInNullModel=log_fact(N_instances)-(log_fact(NumberOfIndividualsWithClass1)+log_fact(NumberOfIndividualsWithClass0))
     return (2*log(2))+calcCriterion(dataNITJ)
@@ -189,8 +189,8 @@ def calcCriterion(NITJ_Interval,NUllModel=False):
 
 
     return SumOfPriorsAndLikelihoods
-def splitInterval(df,colName,NullModelValue,granularite=16):#i is interval index in IntervalsList
-    data=df[[colName,'T','Y']].values.tolist()
+def splitInterval(df,colName,treatmentColName,outputColName,NullModelValue,granularite=16):#i is interval index in IntervalsList
+    data=df[[colName,treatmentColName,outputColName]].values.tolist()
     
     data=SortedKeyList(data, key=itemgetter(0))
 #     print("Started to split the interval")
@@ -407,7 +407,7 @@ def GranTableCreation(df,attributeToDiscretize):
         return -1
     GranOfMinValCost=GranTable.loc[[ValOfTheMinCost]]['Granularite']
     MinCost=GranTable.loc[ValOfTheMinCost,'CriterionCost']
-    NullModelVal=calcNullModel(df)
+    NullModelVal=calcNullModel(df,attributeToDiscretize)
     if MinCost>NullModelVal:
         return -1
     
@@ -417,18 +417,20 @@ def GranTableCreation(df,attributeToDiscretize):
     RightData=df.iloc[IndexOfLastRowInLeftData:,:]
     return LeftData,RightData,ValOfTheMinCost
 #============================================================================================    
-def Exec(df,attributeToDiscretize):    
+def Exec(df,attributeToDiscretize,treatmentColName,outputColName):    
     #NULL MODEL VALUE
-    NullModelValue=calcNullModel(df,attributeToDiscretize)
-    return splitInterval(df,attributeToDiscretize,NullModelValue)
+    NullModelValue=calcNullModel(df,attributeToDiscretize,treatmentColName,outputColName)
+    return splitInterval(df,attributeToDiscretize,treatmentColName,outputColName,NullModelValue)
 #============================================================================================  
 #MAIN
 
 def UMODL_Discretizer(data,T,Y,attributeToDiscretize):
     df=pd.DataFrame()
     df=data.copy()
-    df['T']=T
-    df['Y']=Y
+    treatmentColName=T.name
+    outputColName=Y.name
+    df[treatmentColName]=T
+    df[outputColName]=Y
     
 
     df.sort_values(by=attributeToDiscretize,inplace=True)
@@ -436,4 +438,4 @@ def UMODL_Discretizer(data,T,Y,attributeToDiscretize):
     df.reset_index(inplace=True,drop=True)
     
     log_fact(df.shape[0]+1)
-    return Exec(df,attributeToDiscretize)
+    return Exec(df,attributeToDiscretize,treatmentColName,outputColName)

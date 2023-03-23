@@ -138,16 +138,18 @@ t : array-like, shape = [num_samples]
 y : array-like, shape = [num_samples]
 '''
 class Node:
-    def __init__(self, data,ID=None):
+    def __init__(self, data,treatmentName,outcomeName,ID=None):
         self.id=ID
         self.data=data.copy() #ordered data
+        self.treatment=treatmentName
+        self.output=outcomeName
 #         print("self.data is ",self.data.head())
         self.N=data.shape[0]
-        self.Nj = data[data['Y']==1].shape[0] 
-        self.Ntj=[data[(data['T']==0)&(data['Y']==0)].shape[0],
-                 data[(data['T']==0)&(data['Y']==1)].shape[0],
-                 data[(data['T']==1)&(data['Y']==0)].shape[0],
-                 data[(data['T']==1)&(data['Y']==1)].shape[0]]
+        self.Nj = data[data[self.output]==1].shape[0] 
+        self.Ntj=[data[(data[self.treatment]==0)&(data[self.output]==0)].shape[0],
+                 data[(data[self.treatment]==0)&(data[self.output]==1)].shape[0],
+                 data[(data[self.treatment]==1)&(data[self.output]==0)].shape[0],
+                 data[(data[self.treatment]==1)&(data[self.output]==1)].shape[0]]
         
         self.X=data.iloc[:,:-2].copy()
         self.T=data.iloc[:,-2].copy()
@@ -230,7 +232,7 @@ class Node:
         for attribute in features:
             if len(self.X[attribute].value_counts())==1 or len(self.X[attribute].value_counts())==0:
                 continue
-            DiscRes=UMODL_Discretizer(self.X,self.T.tolist(),self.Y.tolist(),attribute)
+            DiscRes=UMODL_Discretizer(self.X,self.T,self.Y,attribute)
             if DiscRes==-1:
                 continue
             dataLeft,dataRight,threshold=DiscRes[0],DiscRes[1],DiscRes[2]
@@ -257,7 +259,7 @@ class Node:
 #         NewNodeEffectifs=[T0J0,T0J1,T1J0,T1J1]
         LeavesVals=0
         for NewNodeEffectifs in LeftAndRightData:#Loop on Left and Right candidate nodes
-            L=Node(NewNodeEffectifs)
+            L=Node(NewNodeEffectifs,self.treatment,self.output)
             LeavesVals+=(L.PriorLeaf+L.LikelihoodLeaf)
             del L
         return LeavesVals
@@ -267,8 +269,8 @@ class Node:
             raise
         else:
             self.isLeaf=False
-            self.leftNode = Node(self.CandidateSplitsVsDataLeftDataRight[Attribute][0],ID=self.id*2)
-            self.rightNode = Node(self.CandidateSplitsVsDataLeftDataRight[Attribute][1],ID=self.id*2+1)
+            self.leftNode = Node(self.CandidateSplitsVsDataLeftDataRight[Attribute][0],self.treatment,self.output,ID=self.id*2)
+            self.rightNode = Node(self.CandidateSplitsVsDataLeftDataRight[Attribute][1],self.treatment,self.output,ID=self.id*2+1)
             self.Attribute = Attribute
             self.SplitThreshold=self.CandidateSplitsVsDataLeftDataRight[Attribute][2]
             return self.leftNode,self.rightNode
@@ -279,9 +281,9 @@ class Node:
 # Uplift Tree Classifier
 class UpliftTreeClassifier:
     
-    def __init__(self, data):#ordered data as argument
+    def __init__(self, data,treatmentName,outcomeName):#ordered data as argument
         self.nodesIds=0
-        self.rootNode=Node(data,ID=self.nodesIds+1) 
+        self.rootNode=Node(data,treatmentName,outcomeName,ID=self.nodesIds+1) 
         self.terminalNodes=[self.rootNode]
         self.internalNodes=[]
         
