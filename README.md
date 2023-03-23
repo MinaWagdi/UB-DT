@@ -10,7 +10,7 @@ Treatment and output variable should respetively be name 'T' and 'Y' and should 
 import Tree
 import pandas as pd
 
-T=Tree.UpliftTreeClassifier(df_train)
+T=Tree.UpliftTreeClassifier(df_train,treatmentName, outcomeName)
 T.growTree()
 preds=T.predict(df_test[cols])
 </code></pre>
@@ -22,7 +22,7 @@ Treatment and output variable should respetively be name 'T' and 'Y' and should 
 <pre><code>
 from UMODL_Forest import UMODL_RandomForest
 
-T=UMODL_RandomForest(df_train,numberOfTrees=NumberOfTreesInForests)
+T=UMODL_RandomForest(df_train,treatmentName, outcomeName,numberOfTrees=NumberOfTreesInForests)
 T.fit()
 preds=T.predict(df_test[cols])
 </code></pre>
