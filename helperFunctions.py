@@ -1,3 +1,9 @@
+
+'''
+Author: Mina Rafla (Orange Innovation Lannion) 
+'''
+
+
 import warnings
 # warnings.filterwarnings('ignore')
 import pandas as pd

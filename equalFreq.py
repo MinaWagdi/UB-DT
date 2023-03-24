@@ -1,3 +1,8 @@
+'''
+Author: Mina Rafla (Orange Innovation Lannion) 
+'''
+
+
 import numpy as np
 import logging
 import math

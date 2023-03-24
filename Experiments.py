@@ -1,3 +1,8 @@
+'''
+Author: Mina Rafla (Orange Innovation Lannion) 
+'''
+
+
 import Tree
 import Tree_NoTreeCriterion
 import pandas as pd

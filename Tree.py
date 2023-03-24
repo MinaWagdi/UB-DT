@@ -1,3 +1,8 @@
+'''
+Author: Mina Rafla (Orange Innovation Lannion) 
+'''
+
+
 from math import log, pi, pow, exp, lgamma, sqrt
 from UMODL_Discretizer import UMODL_Discretizer
 
