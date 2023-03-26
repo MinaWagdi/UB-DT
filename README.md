@@ -1,6 +1,7 @@
 # UB-DT
+Uplift Bayesian Decision tree: Bayesian decision tree algorithm designed specifically for uplift modeling.
 
-This repository contains the code and supplementary results of a submitted paper to PAKDD conference.
+This repository contains the code and supplementary results of an accepted paper in the PAKDD conference.
 
 ## How to test a UB-DT ?
 
