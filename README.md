@@ -3,6 +3,8 @@ Uplift Bayesian Decision tree: Bayesian decision tree algorithm designed specifi
 
 This repository contains the code and supplementary results of an accepted paper in the PAKDD conference.
 
+UPDATE: PLEASE REFER TO THE KUPLIFT LIBRARY for our official implementation: https://github.com/UData-Orange/kuplift
+
 ## How to test a UB-DT ?
 
 Treatment and output variable should respetively be name 'T' and 'Y' and should be boolean variables.
