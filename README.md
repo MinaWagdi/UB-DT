@@ -1,3 +1,5 @@
+# UPDATE: PLEASE REFER TO THE KUPLIFT LIBRARY for our official implementation: https://github.com/UData-Orange/kuplift
+
 # UB-DT
 Uplift Bayesian Decision tree: Bayesian decision tree algorithm designed specifically for uplift modeling.
 
